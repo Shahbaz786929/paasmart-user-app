@@ -209,7 +209,7 @@ export function CheckoutScreen() {
                   {(["COD", "ONLINE"] as const).map((method) => {
                     const isSelected = paymentMethod === method;
                     return (
-                      <Pressable key={method} onPress={() => setPaymentMethod(method)} style={{ flex: 1, marginRight: method === "COD" ? scale(10) : 0 }}>
+                      <Pressable key={method} onPress={() => { if (method === "COD") setPaymentMethod(method); }} style={{ flex: 1, marginRight: method === "COD" ? scale(10) : 0 }}>
                         <Card
                           style={{
                             alignItems: "center",
@@ -224,7 +224,7 @@ export function CheckoutScreen() {
                             color={isSelected ? colors.primary : colors.textMuted}
                           />
                           <Text style={{ color: colors.textPrimary, fontSize: scale(typography.size.sm), marginTop: scale(6) }}>
-                            {method === "COD" ? "Cash on Delivery" : "Pay Online"}
+                            {method === "COD" ? "Cash on Delivery" : "Pay Online (Coming soon)"}
                           </Text>
                         </Card>
                       </Pressable>

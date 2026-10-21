@@ -290,16 +290,27 @@ export function HomeScreen() {
                           {shop.totalReviews > 0 ? shop.averageRating.toFixed(1) : "New"}
                         </Text>
 
-                        <Text
-                          style={{
-                            marginLeft: 10,
-                            color: colors.textMuted,
-                          }}
+                        <Pressable
+                          disabled={shop.totalReviews === 0}
+                          onPress={() =>
+                            router.push({
+                              pathname: "/shop-ratings/[shopId]",
+                              params: { shopId: String(shop.id), name: shop.shopName },
+                            } as any)
+                          }
                         >
-                          {shop.totalReviews > 0
-                            ? `${shop.totalReviews} ${shop.totalReviews === 1 ? "Review" : "Reviews"}`
-                            : "No reviews yet"}
-                        </Text>
+                          <Text
+                            style={{
+                              marginLeft: 10,
+                              color: colors.textMuted,
+                              textDecorationLine: shop.totalReviews > 0 ? "underline" : "none",
+                            }}
+                          >
+                            {shop.totalReviews > 0
+                              ? `${shop.totalReviews} ${shop.totalReviews === 1 ? "Review" : "Reviews"}`
+                              : "No reviews yet"}
+                          </Text>
+                        </Pressable>
                       </View>
 
                       {/* Category */}

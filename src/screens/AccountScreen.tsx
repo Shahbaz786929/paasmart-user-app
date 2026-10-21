@@ -3,7 +3,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
+import { logoutRequest } from "../api/auth";
 import { ApiError } from "../api/client";
 import { getMyProfile, Profile } from "../api/profile";
 import { AppBackground } from "../components/AppBackground";
@@ -60,6 +60,11 @@ export function AccountScreen() {
 
   const handleLogout = async () => {
     setShowLogoutConfirm(false);
+    const token = await getAuthToken();
+    // Backend par logout request bhejo
+    if (token) {
+      await logoutRequest(token).catch(() => { });
+    }
     await clearAuthSession();
     router.replace("/(auth)/login" as any);
   };

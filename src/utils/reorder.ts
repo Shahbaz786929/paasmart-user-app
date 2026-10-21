@@ -12,11 +12,7 @@ export type ReorderResult = {
  * Agar koi product ab exist nahi karta (delete ho gaya ho seller ne), to
  * uska sirf wo ek item skip ho jaata hai — baaki items normally add hote hain.
  */
-export async function reorderItems(
-  token: string,
-  items: OrderItem[],
-  productNames: Record<number, string>
-): Promise<ReorderResult> {
+export async function reorderItems(token: string, items: OrderItem[]): Promise<ReorderResult> {
   let successCount = 0;
   const failedItems: string[] = [];
 
@@ -25,7 +21,7 @@ export async function reorderItems(
       await addToCart(token, item.productId, item.quantity);
       successCount++;
     } catch {
-      failedItems.push(productNames[item.productId] || `Product #${item.productId}`);
+      failedItems.push(item.productName || `Product #${item.productId}`);
     }
   }
 

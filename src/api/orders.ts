@@ -21,6 +21,9 @@ export type Order = {
   paymentMode: "COD" | "ONLINE";
   totalAmount: number;
   deliveryFee: number;
+  subtotalAmount?: number;
+  discountAmount?: number;
+  walletUsed?: number;
   deliveryAddress: string;
   deliveryLat: number | null;
   deliveryLng: number | null;
@@ -36,6 +39,11 @@ export type OrderItem = {
   quantity: number;
   unitPrice: number;
   subtotal: number;
+  // Snapshot of the product's name/image at order time — present even if the
+  // product was later edited or deleted by the seller. May be null for orders
+  // placed before this field existed on the backend.
+  productName: string | null;
+  productImageUrl: string | null;
 };
 
 export type OrderStatusHistoryEntry = {

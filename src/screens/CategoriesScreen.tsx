@@ -170,9 +170,13 @@ export function CategoriesScreen() {
                                                 {product.description}
                                             </Text>
                                             <Text style={{ color: colors.primary, fontWeight: typography.weight.bold, fontSize: scale(typography.size.sm), marginTop: scale(4) }}>
-                                                ₹{product.price}
+                                                ₹{product.discountPercent > 0
+                                                    ? Math.round(product.price * (1 - product.discountPercent / 100))
+                                                    : product.price}
                                                 {product.discountPercent > 0 && (
                                                     <Text style={{ color: colors.textMuted, fontSize: scale(typography.size.xs), fontWeight: typography.weight.regular }}>
+                                                        {"  "}
+                                                        <Text style={{ textDecorationLine: "line-through" }}>₹{product.price}</Text>
                                                         {"  "}({product.discountPercent}% off)
                                                     </Text>
                                                 )}

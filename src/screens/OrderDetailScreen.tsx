@@ -5,7 +5,6 @@ import { ActivityIndicator, Pressable, ScrollView, StatusBar, StyleSheet, Text, 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiError } from "../api/client";
 import { cancelOrder, getOrderDetail, getOrderTimeline, Order, OrderItem, OrderStatusHistoryEntry } from "../api/orders";
-import { getProductById } from "../api/products";
 import { getReturnRequestsForOrder, ReturnRequest } from "../api/returns";
 import { AppBackground } from "../components/AppBackground";
 import { AppScreenContainer } from "../components/AppScreenContainer";
@@ -23,6 +22,32 @@ import { canCancelOrder, getStatusColor, isActiveOrder, ORDER_STATUS_LABELS } fr
 import { reorderItems } from "../utils/reorder";
 import { canRequestReturn } from "../utils/returnStatus";
 
+function SummaryRow({ label, value, bold, accent }: { label: string; value: string; bold?: boolean; accent?: boolean }) {
+  const { scale } = useResponsive();
+  return (
+    <View style={[styles.itemRow, { marginTop: scale(6) }]}>
+      <Text
+        style={{
+          color: bold ? colors.textPrimary : colors.textSecondary,
+          fontWeight: bold ? typography.weight.bold : undefined,
+          fontSize: scale(bold ? typography.size.md : typography.size.sm),
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          color: accent ? colors.primary : colors.textPrimary,
+          fontWeight: bold ? typography.weight.bold : undefined,
+          fontSize: scale(bold ? typography.size.md : typography.size.sm),
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
 export function OrderDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -32,7 +57,6 @@ export function OrderDetailScreen() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
-  const [productNames, setProductNames] = useState<Record<number, string>>({});
   const [timeline, setTimeline] = useState<OrderStatusHistoryEntry[]>([]);
   const [returnRequests, setReturnRequests] = useState<ReturnRequest[]>([]);
   const [downloadingInvoice, setDownloadingInvoice] = useState(false);
@@ -70,14 +94,6 @@ export function OrderDetailScreen() {
       setItems(detail.items);
       setTimeline(history);
       setReturnRequests(returns);
-
-      const uniqueProductIds = [...new Set(detail.items.map((i) => i.productId))];
-      const products = await Promise.all(uniqueProductIds.map((pid) => getProductById(token, pid).catch(() => null)));
-      const nameMap: Record<number, string> = {};
-      products.forEach((p, idx) => {
-        if (p) nameMap[uniqueProductIds[idx]] = p.name;
-      });
-      setProductNames(nameMap);
 
       setError("");
     } catch (err) {
@@ -118,7 +134,7 @@ export function OrderDetailScreen() {
     try {
       const token = await getAuthToken();
       if (!token) return;
-      const result = await reorderItems(token, items, productNames);
+      const result = await reorderItems(token, items);
       await refreshCartCount();
 
       if (result.successCount > 0 && result.failedCount === 0) {
@@ -280,7 +296,7 @@ export function OrderDetailScreen() {
                     <View key={item.id} style={{ marginBottom: scale(8) }}>
                       <View style={styles.itemRow}>
                         <Text style={{ color: colors.textSecondary, fontSize: scale(typography.size.sm), flex: 1 }} numberOfLines={1}>
-                          {productNames[item.productId] || `Product #${item.productId}`} × {item.quantity}
+                          {item.productName || `Product #${item.productId}`} × {item.quantity}
                         </Text>
                         <Text style={{ color: colors.textPrimary, fontSize: scale(typography.size.sm) }}>₹{item.subtotal}</Text>
                       </View>
@@ -293,7 +309,7 @@ export function OrderDetailScreen() {
                           onPress={() =>
                             router.push({
                               pathname: "/return-request" as any,
-                              params: { orderItemId: item.id, productName: productNames[item.productId] || `Product #${item.productId}` },
+                              params: { orderItemId: item.id, productName: item.productName || `Product #${item.productId}` },
                             })
                           }
                         >
@@ -305,14 +321,20 @@ export function OrderDetailScreen() {
                     </View>
                   );
                 })}
-                <View style={[styles.itemRow, { marginTop: scale(8) }]}>
-                  <Text style={{ color: colors.textSecondary, fontSize: scale(typography.size.sm) }}>Delivery Fee</Text>
-                  <Text style={{ color: colors.textPrimary, fontSize: scale(typography.size.sm) }}>₹{order.deliveryFee}</Text>
-                </View>
-                <View style={[styles.itemRow, { marginTop: scale(6) }]}>
-                  <Text style={{ color: colors.textPrimary, fontWeight: typography.weight.bold, fontSize: scale(typography.size.md) }}>Total</Text>
-                  <Text style={{ color: colors.primary, fontWeight: typography.weight.bold, fontSize: scale(typography.size.md) }}>₹{order.totalAmount}</Text>
-                </View>
+                {(order.discountAmount ?? 0) > 0 && (
+                  <SummaryRow label="Coupon Discount" value={`- ₹${order.discountAmount}`} />
+                )}
+                <SummaryRow label="Delivery Fee" value={`₹${order.deliveryFee}`} />
+                <SummaryRow label="Order Total" value={`₹${order.totalAmount + (order.walletUsed ?? 0)}`} bold />
+                {(order.walletUsed ?? 0) > 0 && (
+                  <SummaryRow label="Paid from Wallet" value={`- ₹${order.walletUsed}`} />
+                )}
+                <SummaryRow
+                  label={order.paymentMode === "COD" ? "To Pay on Delivery" : "Amount Payable"}
+                  value={`₹${order.totalAmount}`}
+                  bold
+                  accent
+                />
               </Card>
 
               {/* Delivery address */}

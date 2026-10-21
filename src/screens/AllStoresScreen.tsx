@@ -83,12 +83,28 @@ export function AllStoresScreen() {
                           {shop.category}
                         </Text>
                         {shop.totalReviews > 0 ? (
-                          <View style={{ flexDirection: "row", alignItems: "center", marginTop: scale(4) }}>
+
+                          <Pressable
+                            onPress={() =>
+                              router.push({
+                                pathname: "/shop-ratings/[shopId]",
+                                params: {
+                                  shopId: String(shop.id),
+                                  name: shop.shopName,
+                                },
+                              } as any)
+                            }
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginTop: scale(4),
+                            }}
+                          >
                             <Ionicons name="star" color="#FFC107" size={scale(13)} />
                             <Text style={{ color: colors.textSecondary, fontSize: scale(typography.size.xs), marginLeft: scale(4) }}>
                               {shop.averageRating.toFixed(1)} · {shop.totalReviews} {shop.totalReviews === 1 ? "Review" : "Reviews"}
                             </Text>
-                          </View>
+                          </Pressable>
                         ) : (
                           <Text style={{ color: colors.textMuted, fontSize: scale(typography.size.xs), marginTop: scale(4) }}>
                             No reviews yet

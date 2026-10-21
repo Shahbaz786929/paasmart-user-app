@@ -83,3 +83,8 @@ export function resetPassword(payload: ResetPasswordPayload): Promise<string> {
 export function savePushToken(authToken: string, pushToken: string): Promise<string> {
   return apiRequest<string>("/auth/push-token", { method: "PUT", token: authToken, body: { pushToken } });
 }
+
+// POST /api/v1/auth/logout: is device ka token (aur purane saare tokens) turant band
+export function logoutRequest(token: string): Promise<void> {
+  return apiRequest<void>("/auth/logout", { method: "POST", token });
+}
